@@ -1,0 +1,171 @@
+
+
+```html
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F0F0F0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333333;
+        }
+
+        #container {
+            width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #FFFFFF;
+            border: 1px solid #CCCCCC;
+        }
+
+        #form {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #platform {
+            margin-right: 10px;
+        }
+
+        #nickname {
+            margin-right: 10px;
+        }
+
+        #submit {
+            cursor: pointer;
+        }
+
+        #stats {
+            margin-top: 20px;
+        }
+
+        #stats table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        #stats th, #stats td {
+            border: 1px solid #CCCCCC;
+            padding: 10px;
+            text-align: left;
+        }
+
+        #stats th {
+            background-color: #EEEEEE;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fortnite Stats</h1>
+    <div id="container">
+        <div id="form">
+            <select id="platform">
+                <option value="pc">PC</option>
+                <option value="xb1">Xbox One</option>
+                <option value="psn">PlayStation 4</option>
+            </select>
+            <input type="text" id="nickname" placeholder="Enter your epic nickname">
+            <button id="submit">Get Stats</button>
+        </div>
+        <div id="stats"></div>
+    </div>
+    <script>
+        // Replace this with your own API key from Fortnite Tracker
+        const API_KEY = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+
+        // Get the elements from the document
+        const platform = document.getElementById("platform");
+        const nickname = document.getElementById("nickname");
+        const submit = document.getElementById("submit");
+        const stats = document.getElementById("stats");
+
+        // Add a click event listener to the submit button
+        submit.addEventListener("click", function() {
+            // Get the values from the inputs
+            const platformValue = platform.value;
+            const nicknameValue = nickname.value;
+
+            // Validate the inputs
+            if (platformValue && nicknameValue) {
+                // Clear the stats div
+                stats.innerHTML = "";
+
+                // Make a request to the Fortnite Tracker API
+                fetch(`https://api.fortnitetracker.com/v1/profile/${platformValue}/${nicknameValue}`, {
+                    headers: {
+                        "TRN-Api-Key": API_KEY
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Check if the player exists
+                    if (data.error) {
+                        // Show an error message
+                        stats.innerHTML = `<p>${data.error}</p>`;
+                    } else {
+                        // Get the player's stats
+                        const { epicUserHandle, platformNameLong, stats: playerStats } = data;
+
+                        // Create a table element
+                        const table = document.createElement("table");
+
+                        // Create a table header row
+                        const headerRow = document.createElement("tr");
+                        headerRow.innerHTML = `
+                            <th>Mode</th>
+                            <th>Matches</th>
+                            <th>Wins</th>
+                            <th>Kills</th>
+                            <th>K/D</th>
+                            <th>Win%</th>
+                        `;
+
+                        // Append the header row to the table
+                        table.appendChild(headerRow);
+
+                        // Loop through the player's stats
+                        for (let mode in playerStats) {
+                            // Get the stats for the current mode
+                            const { label, matches, wins, kills, kd, winRatio } = playerStats[mode];
+
+                            // Create a table data row
+                            const dataRow = document.createElement("tr");
+                            dataRow.innerHTML = `
+                                <td>${label}</td>
+                                <td>${matches.displayValue}</td>
+                                <td>${wins.displayValue}</td>
+                                <td>${kills.displayValue}</td>
+                                <td>${kd.displayValue}</td>
+                                <td>${winRatio.displayValue}%</td>
+                            `;
+
+                            // Append the data row to the table
+                            table.appendChild(dataRow);
+                        }
+
+                        // Show the player's name and platform
+                        stats.innerHTML = `<p>${epicUserHandle} (${platformNameLong})</p>`;
+
+                        // Append the table to the stats div
+                        stats.appendChild(table);
+                    }
+                })
+                .catch(error => {
+                    // Show an error message
+                    stats.innerHTML = `<p>Something went wrong: ${error}</p>`;
+                });
+            } else {
+                // Show an error message
+                stats.innerHTML = "<p>Please enter a valid platform and nickname.</p>";
+            }
+        });
+    </script>
+</body>
+</html>
+```
+
